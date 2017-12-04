@@ -3,56 +3,69 @@ from sklearn import svm
 from scipy.spatial import distance
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_recall_fscore_support as score
+from scipy import stats
 import numpy as np
 import matplotlib.pyplot as plot
 
 
+X_mode = [None,None,None,None,None,None,None,None,None,None,None,None,None];
+
 def workClassValue(x):
-    return workClassValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return workClassValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def workClassValueHelper(xString):
     return {
         #workclass column values
-        "Private": 1.0,
-        "Self-emp-not-inc": 2.0,
-        "Self-emp-inc": 3.0,
-        "Federal-gov": 4.0,
-        "Local-gov": 5.0,
-        "State-gov": 6.0,
-        "Without-pay": 7.0,
-        "Never-worked": 8.0
-    }.get(xString, 0.0)
+        "Private": computeWeightWorkClass(6.0),
+        "Self-emp-not-inc": computeWeightWorkClass(3.0),
+        "Self-emp-inc": computeWeightWorkClass(8.0),
+        "Federal-gov": computeWeightWorkClass(4.0),
+        "Local-gov": computeWeightWorkClass(4.0),
+        "State-gov": computeWeightWorkClass(4.0),
+        "Without-pay": computeWeightWorkClass(1.0),
+        "Never-worked": computeWeightWorkClass(1.0)
+    }.get(xString, computeWeightWorkClass(getMode(1)))
+
+
+def computeWeightWorkClass(x):
+
+    return x*x-2.0*x
 
 
 def educationValue(x):
-    return educationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return educationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def educationValueHelper(xString):
+    x = 2.0
     return {
         #education column values
-        "Preschool": 1.0,
-        "1st-4th": 2.0,
-        "5th-6th": 3.0,
-        "7th-8th": 4.0,
-        "9th": 5.0,
-        "10th": 6.0,
-        "11th": 7.0,
-        "12th": 8.0,
-        "HS-grad": 9.0,
-        "Some-college": 10.0,
-        "Assoc-acdm": 11.0,
-        "Assoc-voc": 12.0,
-        "Prof-school": 13.0,
-        "Bachelors": 14.0,
-        "Masters": 15.0,
-        "Doctorate": 16.0,
-    }.get(xString, 0.0)
+        "Preschool": computeWeightEdu(1.0),
+        "1st-4th": computeWeightEdu(1.0),
+        "5th-6th": computeWeightEdu(4.0),
+        "7th-8th": computeWeightEdu(4.0),
+        "9th": computeWeightEdu(7.0),
+        "10th": computeWeightEdu(7.0),
+        "11th": computeWeightEdu(7.0),
+        "12th": computeWeightEdu(9.0),
+        "HS-grad": computeWeightEdu(9.0),
+        "Some-college": computeWeightEdu(10.0),
+        "Assoc-acdm": computeWeightEdu(12.0),
+        "Assoc-voc": computeWeightEdu(12.0),
+        "Prof-school": computeWeightEdu(14.0),
+        "Bachelors": computeWeightEdu(14.0),
+        "Masters": computeWeightEdu(16.0),
+        "Doctorate": computeWeightEdu(16.0),
+    }.get(xString, computeWeightEdu(getMode(2)))
+
+
+def computeWeightEdu(x):
+    return (x+x)*x -2.0*x
 
 
 def maritalStatusValue(x):
-    return maritalStatusValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return maritalStatusValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def maritalStatusValueHelper(xString):
@@ -65,11 +78,11 @@ def maritalStatusValueHelper(xString):
         "Married-spouse-absent": 5.0,
         "Married-AF-spouse": 6.0,
         "Married-civ-spouse": 7.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(3))
 
 
 def occupationValue(x):
-    return occupationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return occupationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def occupationValueHelper(xString):
@@ -89,11 +102,11 @@ def occupationValueHelper(xString):
         "Priv-house-serv": 12.0,
         "Protective-serv": 13.0,
         "Armed-Forces": 14.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(4))
 
 
 def relationshipValue(x):
-    return relationshipValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return relationshipValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def relationshipValueHelper(xString):
@@ -105,11 +118,11 @@ def relationshipValueHelper(xString):
         "Not-in-family": 4.0,
         "Other-relative": 5.0,
         "Unmarried": 6.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(5))
 
 
 def raceValue(x):
-    return raceValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return raceValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def raceValueHelper(xString):
@@ -120,11 +133,11 @@ def raceValueHelper(xString):
         "Amer-Indian-Eskimo": 3.0,
         "Other": 4.0,
         "Black": 5.0,
-    }.get(xString, 0.0)
+    }.get(xString, getMode(6))
 
 
 def genderValue(x):
-    return genderValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return genderValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def genderValueHelper(xString):
@@ -132,11 +145,11 @@ def genderValueHelper(xString):
         #gender
         "Male": 1.0,
         "Female": 2.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(7))
 
 
 def countryValue(x):
-    return countryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return countryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def countryValueHelper(xString):
@@ -184,11 +197,11 @@ def countryValueHelper(xString):
         "Peru": 39.0,
         "Hong": 40.0,
         "Holand-Netherlands": 41.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(11))
 
 
 def salaryValue(x):
-    return salaryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return salaryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "", 1).replace(".", ""))
 
 
 def salaryValueHelper(xString):
@@ -196,28 +209,84 @@ def salaryValueHelper(xString):
         #salary
         "<=50K": 1.0,
         ">50K": -1.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(12))
+
 
 def euclidian(x):
-    return distance.euclidean((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), x, w=None)
+    return distance.euclidean((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), x, w=None)
+
+
+def printValBefore(x):
+    print(x)
+    return getMode(11)
+
+
+def getMode(column):
+    global X_mode
+    x = 0.0
+    if X_mode[0] is None:
+        return x
+    x = X_mode[column]
+    x = x
+    #print(" new mode val " + str(x))
+    return x
+
+
+def getModeArray(X_data):
+    X_data_new = trimData(X_data)
+    print(X_data_new.shape)
+
+    Xmode = stats.mode(X_data_new)
+    x = Xmode[0][0]
+    print(x)
+
+    return x
+
+def trimData(X_data):
+    #get columns 1-2
+    X_data1 = X_data[:, :2]
+    #print(X_data1.shape)
+
+    #get column 4
+    X_data2 = np.expand_dims(X_data[:, 3], axis=1)
+    #print(X_data2.shape)
+
+    #get columns 6-14
+    X_data3 = X_data[:, 5:15]
+    #print(X_data3.shape)
+
+    #merge all sub X_data sets
+    X_data_new = np.concatenate((np.concatenate((X_data1, X_data2), axis=1), X_data3), axis=1)
+    #print(X_data_new.shape)
+
+    return X_data_new
+
 
 
 if __name__ == '__main__':
-    #get all data
+    #set print options for numpy objects
+    np.set_printoptions(suppress=True)
+
+    #get mode for each column for training
+    X_mode = getModeArray(np.genfromtxt(fname='adult.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue}))
+
+    #get training data
     X_data = np.genfromtxt(fname='adult.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue})
-    Y_data = np.genfromtxt(fname='adult.test.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue})
+
+    #removing columns 3 and 5
+    X_data = trimData(X_data)
 
     # create blank data structure
     x_training_euclidian = np.empty(shape=[1], dtype='float')
     x_training_euclidian = np.delete(x_training_euclidian, 0, axis=0)
 
-    # compute euclidian distance for first 13 attributes
+    # compute euclidian distance for first 11 attributes
     #normalize
-    for x in X_data[:, :13]:
+    for x in X_data[:, :11]:
         x_training_euclidian = np.append(x_training_euclidian, [euclidian(tuple(x))], axis=0)
 
-    #get 14th attribute
-    x_training_country = X_data[:, 13]
+    #get 12th attribute
+    x_training_country = X_data[:, 11]
 
     #print ndarray size
     print(x_training_euclidian.shape)
@@ -235,18 +304,27 @@ if __name__ == '__main__':
     x_training_data = np.concatenate((x_training_euclidian, x_training_country), axis=1)
 
     #get classifier
-    x_training_result = X_data[:, 14]
+    x_training_result = X_data[:, 12]
+
+    #get mode for each column for training
+    X_mode = getModeArray(np.genfromtxt(fname='adult.test.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue}))
+
+    #get testing data
+    Y_data = np.genfromtxt(fname='adult.test.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue})
+
+    #removing columns 3 and 5
+    Y_data = trimData(Y_data)
 
     # create blank data structure
     y_testing_euclidian = np.empty(shape=[1], dtype='float')
     y_testing_euclidian = np.delete(y_testing_euclidian, 0, axis=0)
 
-    # compute euclidian distance for first 13 attributes
-    for y in Y_data[:, :13]:
+    # compute euclidian distance for first 11 attributes
+    for y in Y_data[:, :11]:
         y_testing_euclidian = np.append(y_testing_euclidian, [euclidian(tuple(y))], axis=0)
 
-    #get 14th attribute
-    y_testing_country = Y_data[:, 13]
+    #get 12th attribute
+    y_testing_country = Y_data[:, 11]
 
     #print ndarray size
     print(y_testing_euclidian.shape)
@@ -262,7 +340,9 @@ if __name__ == '__main__':
 
     #merge the 2 ndarrays
     y_testing_data = np.concatenate((y_testing_euclidian, y_testing_country), axis=1)
-    y_testing_result = Y_data[:, 14]
+
+    #get testing classifier
+    y_testing_result = Y_data[:, 12]
 
     #svm function
     #svc = svm.LinearSVC(C=1.0).fit(x_training_data,x_training_result)
