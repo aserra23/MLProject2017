@@ -284,11 +284,12 @@ if __name__ == '__main__':
     print(cancer_data1.shape)
 
     #train
-    X = cancer_data[:, range(0, 12)]
+    X = cancer_data[:, :12]
+    print(X.shape)
     X1 = cancer_data[:, 12]
 
     #test
-    Y = cancer_data1[:, range(0, 12)]
+    Y = cancer_data1[:, :12]
     Y1 = cancer_data1[:, 12]
 
     weak_Fscore = []

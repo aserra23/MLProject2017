@@ -131,10 +131,10 @@ def raceValueHelper(xString):
     return {
         #race column values
         "White": 1.0,
-        "Asian-Pac-Islander": 3.0,
-        "Amer-Indian-Eskimo": 5.0,
-        "Other": 7.0,
-        "Black": 9.0,
+        "Asian-Pac-Islander": 2.0,
+        "Amer-Indian-Eskimo": 3.0,
+        "Other": 4.0,
+        "Black": 5.0,
     }.get(xString, getMode(6))
 
 
@@ -145,8 +145,8 @@ def genderValue(x):
 def genderValueHelper(xString):
     return {
         #gender
-        "Male": 2.0,
-        "Female": 1.0
+        "Male": 1.0,
+        "Female": 2.0
     }.get(xString, getMode(7))
 
 
