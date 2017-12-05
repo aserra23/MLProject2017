@@ -10,22 +10,24 @@ import matplotlib.pyplot as plot
 
 X_mode = [None,None,None,None,None,None,None,None,None,None,None,None,None];
 
+
+#start of lambda functions
 def workClassValue(x):
-    return workClassValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
+    return workClassValueHelper( str(x).replace("'", "").replace(" ", "").replace("b", "", 1).replace(".", "") )
 
 
 def workClassValueHelper(xString):
     return {
         #workclass column values
         "Private": computeWeightWorkClass(6.0),
-        "Self-emp-not-inc": computeWeightWorkClass(3.0),
+        "Self-emp-not-inc": computeWeightWorkClass(2.0),
         "Self-emp-inc": computeWeightWorkClass(8.0),
         "Federal-gov": computeWeightWorkClass(4.0),
         "Local-gov": computeWeightWorkClass(4.0),
         "State-gov": computeWeightWorkClass(4.0),
-        "Without-pay": computeWeightWorkClass(1.0),
-        "Never-worked": computeWeightWorkClass(1.0)
-    }.get(xString, computeWeightWorkClass(getMode(1)))
+        "Without-pay": computeWeightWorkClass(0.0),
+        "Never-worked": computeWeightWorkClass(0.0)
+    }.get(xString, getMode(1))
 
 
 def computeWeightWorkClass(x):
@@ -43,21 +45,21 @@ def educationValueHelper(xString):
         #education column values
         "Preschool": computeWeightEdu(1.0),
         "1st-4th": computeWeightEdu(1.0),
-        "5th-6th": computeWeightEdu(4.0),
-        "7th-8th": computeWeightEdu(4.0),
-        "9th": computeWeightEdu(7.0),
-        "10th": computeWeightEdu(7.0),
-        "11th": computeWeightEdu(7.0),
-        "12th": computeWeightEdu(9.0),
-        "HS-grad": computeWeightEdu(9.0),
-        "Some-college": computeWeightEdu(10.0),
-        "Assoc-acdm": computeWeightEdu(12.0),
-        "Assoc-voc": computeWeightEdu(12.0),
-        "Prof-school": computeWeightEdu(14.0),
+        "5th-6th": computeWeightEdu(3.0),
+        "7th-8th": computeWeightEdu(3.0),
+        "9th": computeWeightEdu(5.0),
+        "10th": computeWeightEdu(5.0),
+        "11th": computeWeightEdu(5.0),
+        "12th": computeWeightEdu(5.0),
+        "HS-grad": computeWeightEdu(7.0),
+        "Some-college": computeWeightEdu(8.0),
+        "Assoc-acdm": computeWeightEdu(10.0),
+        "Assoc-voc": computeWeightEdu(10.0),
+        "Prof-school": computeWeightEdu(16.0),
         "Bachelors": computeWeightEdu(14.0),
         "Masters": computeWeightEdu(16.0),
-        "Doctorate": computeWeightEdu(16.0),
-    }.get(xString, computeWeightEdu(getMode(2)))
+        "Doctorate": computeWeightEdu(18.0),
+    }.get(xString, getMode(2))
 
 
 def computeWeightEdu(x):
@@ -129,10 +131,10 @@ def raceValueHelper(xString):
     return {
         #race column values
         "White": 1.0,
-        "Asian-Pac-Islander": 2.0,
-        "Amer-Indian-Eskimo": 3.0,
-        "Other": 4.0,
-        "Black": 5.0,
+        "Asian-Pac-Islander": 3.0,
+        "Amer-Indian-Eskimo": 5.0,
+        "Other": 7.0,
+        "Black": 9.0,
     }.get(xString, getMode(6))
 
 
@@ -143,8 +145,8 @@ def genderValue(x):
 def genderValueHelper(xString):
     return {
         #gender
-        "Male": 1.0,
-        "Female": 2.0
+        "Male": 2.0,
+        "Female": 1.0
     }.get(xString, getMode(7))
 
 
@@ -210,7 +212,7 @@ def salaryValueHelper(xString):
         "<=50K": 1.0,
         ">50K": -1.0
     }.get(xString, getMode(12))
-
+#end of lamda functions
 
 def euclidian(x):
     return distance.euclidean((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), x, w=None)
@@ -301,7 +303,7 @@ if __name__ == '__main__':
     print(x_training_country.shape)
 
     #merge the 2 ndarrays
-    x_training_data = np.concatenate((x_training_euclidian, x_training_country), axis=1)
+    x_training_data = np.concatenate((x_training_country, x_training_euclidian), axis=1)
 
     #get classifier
     x_training_result = X_data[:, 12]
@@ -339,15 +341,17 @@ if __name__ == '__main__':
     print(y_testing_country.shape)
 
     #merge the 2 ndarrays
-    y_testing_data = np.concatenate((y_testing_euclidian, y_testing_country), axis=1)
+    y_testing_data = np.concatenate((y_testing_country, y_testing_euclidian), axis=1)
 
     #get testing classifier
     y_testing_result = Y_data[:, 12]
 
     #svm function
     #svc = svm.LinearSVC(C=1.0).fit(x_training_data,x_training_result)
-    svc = svm.SVC(kernel='rbf', gamma=.07, C=1.0).fit(x_training_data, x_training_result)
+    svc = svm.SVC(kernel='rbf', gamma=1e-2, C=1.0)
+    svc.fit(x_training_data, x_training_result)
 
+    #w = svc.coef_
     #predict using testing
     Z = svc.predict(y_testing_data)
 
@@ -355,19 +359,43 @@ if __name__ == '__main__':
     print(accuracy_score(y_testing_result, Z))
     precision, recall, fscore, support = score(y_testing_result, Z)
 
+    f = (fscore[0] + fscore[1])/2.0
+
     print('precision: {}'.format(precision))
     print('recall: {}'.format(recall))
-    print('fscore: {}'.format(fscore))
+    print('fscore: {}'.format(fscore), ' average is:{}'.format(f))
     print('support: {}'.format(support))
 
-    # Put the result into a color plot
-    #Z = Z.reshape(xx.shape)
-    #plot.contourf(xx, yy, Z, cmap=plot.cm.coolwarm, alpha=0.8)
+    print(support[1]/(support[0]+support[1]))
+
+    plot.figure('rbf')
+    plot.clf()
+
 
     #plot here
-    #plot.scatter(x_training_data[:,0], x_training_data[:, 1], c=x_training_result,cmap=plot.cm.coolwarm)
-    #plot.xlabel('13 combined')
-    #plot.ylabel('country')
-    #plot.title('hello')
-    #plot.show()
+    plot.scatter(y_testing_data[:,0], y_testing_data[:, 1], c=y_testing_result,zorder=10, cmap=plot.cm.Paired,edgecolor='k', s=20)
+
+    plot.axis('tight')
+    #get min and max for all axis
+    x_min = x_training_data[:, 0].min()
+    x_max = x_training_data[:, 0].max()
+    y_min = x_training_data[:, 1].min()
+    y_max = x_training_data[:, 1].max()
+
+    #python meshgrid
+    XX, YY = np.mgrid[x_min:x_max:200j, y_min:y_max:200j]
+
+    #get decision function from svm
+    Z1 = svc.decision_function(np.c_[XX.ravel(), YY.ravel()])
+
+    #reshape
+    Z1 = Z1.reshape(XX.shape)
+
+    #plot color
+    plot.pcolormesh(XX, YY, Z1 > 0, cmap=plot.cm.Paired)
+
+    #plot decision boundaries
+    plot.contour(XX, YY, Z1, colors=['k', 'k', 'k'],linestyles=['--', '-', '--'], levels=[-.5, 0, .5])
+
+    plot.show()
 

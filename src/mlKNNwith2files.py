@@ -2,54 +2,69 @@ import numpy as np
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+from scipy import stats
+from scipy.spatial import distance
+from sklearn.metrics import precision_recall_fscore_support as score
 
+
+X_mode = [None,None,None,None,None,None,None,None,None,None,None,None,None];
 
 def workClassValue(x):
-    return workClassValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return workClassValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def workClassValueHelper(xString):
     return {
         #workclass column values
-        "Private": 1.0,
-        "Self-emp-not-inc": 2.0,
-        "Self-emp-inc": 3.0,
-        "Federal-gov": 4.0,
-        "Local-gov": 5.0,
-        "State-gov": 6.0,
-        "Without-pay": 7.0,
-        "Never-worked": 8.0
-    }.get(xString, 0.0)
+        "Private": computeWeightWorkClass(1.0),
+        "Self-emp-not-inc": computeWeightWorkClass(2.0),
+        "Self-emp-inc": computeWeightWorkClass(3.0),
+        "Federal-gov": computeWeightWorkClass(4.0),
+        "Local-gov": computeWeightWorkClass(5.0),
+        "State-gov": computeWeightWorkClass(6.0),
+        "Without-pay": computeWeightWorkClass(7.0),
+        "Never-worked": computeWeightWorkClass(8.0)
+    }.get(xString, getMode(1))
+
+
+def computeWeightWorkClass(x):
+
+    return x
 
 
 def educationValue(x):
-    return educationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return educationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def educationValueHelper(xString):
+    x = 2.0
     return {
         #education column values
-        "Preschool": 1.0,
-        "1st-4th": 2.0,
-        "5th-6th": 3.0,
-        "7th-8th": 4.0,
-        "9th": 5.0,
-        "10th": 6.0,
-        "11th": 7.0,
-        "12th": 8.0,
-        "HS-grad": 9.0,
-        "Some-college": 10.0,
-        "Assoc-acdm": 11.0,
-        "Assoc-voc": 12.0,
-        "Prof-school": 13.0,
-        "Bachelors": 14.0,
-        "Masters": 15.0,
-        "Doctorate": 16.0,
-    }.get(xString, 0.0)
+        "Preschool": computeWeightEdu(1.0),
+        "1st-4th": computeWeightEdu(2.0),
+        "5th-6th": computeWeightEdu(3.0),
+        "7th-8th": computeWeightEdu(4.0),
+        "9th": computeWeightEdu(5.0),
+        "10th": computeWeightEdu(6.0),
+        "11th": computeWeightEdu(7.0),
+        "12th": computeWeightEdu(8.0),
+        "HS-grad": computeWeightEdu(9.0),
+        "Some-college": computeWeightEdu(10.0),
+        "Assoc-acdm": computeWeightEdu(11.0),
+        "Assoc-voc": computeWeightEdu(12.0),
+        "Prof-school": computeWeightEdu(13.0),
+        "Bachelors": computeWeightEdu(14.0),
+        "Masters": computeWeightEdu(15.0),
+        "Doctorate": computeWeightEdu(16.0),
+    }.get(xString, getMode(2))
+
+
+def computeWeightEdu(x):
+    return x
 
 
 def maritalStatusValue(x):
-    return maritalStatusValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return maritalStatusValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "", 1).replace(".", ""))
 
 
 def maritalStatusValueHelper(xString):
@@ -62,11 +77,11 @@ def maritalStatusValueHelper(xString):
         "Married-spouse-absent": 5.0,
         "Married-AF-spouse": 6.0,
         "Married-civ-spouse": 7.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(3))
 
 
 def occupationValue(x):
-    return occupationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return occupationValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def occupationValueHelper(xString):
@@ -86,11 +101,11 @@ def occupationValueHelper(xString):
         "Priv-house-serv": 12.0,
         "Protective-serv": 13.0,
         "Armed-Forces": 14.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(4))
 
 
 def relationshipValue(x):
-    return relationshipValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return relationshipValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def relationshipValueHelper(xString):
@@ -102,11 +117,11 @@ def relationshipValueHelper(xString):
         "Not-in-family": 4.0,
         "Other-relative": 5.0,
         "Unmarried": 6.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(5))
 
 
 def raceValue(x):
-    return raceValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return raceValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def raceValueHelper(xString):
@@ -117,11 +132,11 @@ def raceValueHelper(xString):
         "Amer-Indian-Eskimo": 3.0,
         "Other": 4.0,
         "Black": 5.0,
-    }.get(xString, 0.0)
+    }.get(xString, getMode(6))
 
 
 def genderValue(x):
-    return genderValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return genderValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def genderValueHelper(xString):
@@ -129,11 +144,11 @@ def genderValueHelper(xString):
         #gender
         "Male": 1.0,
         "Female": 2.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(7))
 
 
 def countryValue(x):
-    return countryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return countryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "",1).replace(".", ""))
 
 
 def countryValueHelper(xString):
@@ -181,38 +196,102 @@ def countryValueHelper(xString):
         "Peru": 39.0,
         "Hong": 40.0,
         "Holand-Netherlands": 41.0
-    }.get(xString, 0.0)
+    }.get(xString, getMode(11))
 
 
 def salaryValue(x):
-    return salaryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "").replace(".", ""))
+    return salaryValueHelper(str(x).replace("'", "").replace(" ", "").replace("b", "", 1).replace(".", ""))
 
 
 def salaryValueHelper(xString):
     return {
         #salary
         "<=50K": 1.0,
-        ">50K": 2.0
-    }.get(xString, 0.0)
+        ">50K": -1.0
+    }.get(xString, getMode(12))
+
+
+def euclidian(x):
+    return distance.euclidean((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), x, w=None)
+
+
+def printValBefore(x):
+    print(x)
+    return getMode(11)
+
+
+def getMode(column):
+    global X_mode
+    x = 0.0
+    if X_mode[0] is None:
+        return x
+    x = X_mode[column]
+    x = x
+    #print(" new mode val " + str(x))
+    return x
+
+
+def getModeArray(X_data):
+    X_data_new = trimData(X_data)
+    print(X_data_new.shape)
+
+    Xmode = stats.mode(X_data_new)
+    x = Xmode[0][0]
+    print(x)
+
+    return x
+
+def trimData(X_data):
+    #get columns 1-2
+    X_data1 = X_data[:, :2]
+    #print(X_data1.shape)
+
+    #get column 4
+    X_data2 = np.expand_dims(X_data[:, 3], axis=1)
+    #print(X_data2.shape)
+
+    #get columns 6-14
+    X_data3 = X_data[:, 5:15]
+    #print(X_data3.shape)
+
+    #merge all sub X_data sets
+    X_data_new = np.concatenate((np.concatenate((X_data1, X_data2), axis=1), X_data3), axis=1)
+    #print(X_data_new.shape)
+
+    return X_data_new
 
 
 # main function
 if __name__ == '__main__':
-    #cancer_data = np.genfromtxt(fname='adult.csv',dtype='float', delimiter=',',missing_values="nan", filling_values=1, converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue})
+    #set print options for numpy objects
+    np.set_printoptions(suppress=True)
+
+    #get mode for each column for training
+    X_mode = getModeArray(np.genfromtxt(fname='adult.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue}))
     cancer_data = np.genfromtxt(fname='adult.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue})
+
+    #removing columns 3 and 5
+    cancer_data = trimData(cancer_data)
+
+    #get mode for each column for training
+    X_mode = getModeArray(np.genfromtxt(fname='adult.test.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue}))
     cancer_data1 = np.genfromtxt(fname='adult.test.csv', dtype='float', delimiter=',', converters={1: workClassValue, 3: educationValue, 5: maritalStatusValue, 6: occupationValue, 7: relationshipValue, 8: raceValue, 9: genderValue, 13: countryValue, 14: salaryValue})
+
+    cancer_data1 = trimData(cancer_data1)
+
     print(len(cancer_data1))
     print(cancer_data1)
     print(cancer_data1.shape)
 
     #train
-    X = cancer_data[:, range(0, 13)]
-    X1 = cancer_data[:, 14]
+    X = cancer_data[:, range(0, 12)]
+    X1 = cancer_data[:, 12]
 
     #test
-    Y = cancer_data1[:, range(0, 13)]
-    Y1 = cancer_data1[:, 14]
+    Y = cancer_data1[:, range(0, 12)]
+    Y1 = cancer_data1[:, 12]
 
+    weak_Fscore = []
     for K in range(25):
         K_value = K+1
 
@@ -224,6 +303,18 @@ if __name__ == '__main__':
 
         #predicts training income based on nearest neighbor classifier
         y_pred = neigh.predict(Y)
-        
+
         #print result
         print("Accuracy is ", accuracy_score(Y1,y_pred)*100,"% for K-Value:",K_value)
+        precision, recall, fscore, support = score(Y1, y_pred)
+
+        f = (fscore[0] + fscore[1])/2.0
+
+        weak_Fscore.append(f)
+        #print('precision: {}'.format(precision))
+        #print('recall: {}'.format(recall))
+        print('fscore: {}'.format(fscore), ' average is:{}'.format(f))
+        #print('support: {}'.format(support))
+    max_weak = max(weak_Fscore)
+    print(max_weak)
+    print(support[1]/(support[0]+support[1]))
